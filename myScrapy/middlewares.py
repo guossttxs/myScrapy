@@ -6,7 +6,7 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-
+import requests
 
 class MyscrapySpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -101,3 +101,18 @@ class MyscrapyDownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
+
+
+class HttpProxyRequestMiddleware(object):
+    '''
+    设置访问代理
+    '''
+    def process_request(self, request, spider):
+        proxy_addr = self.get_new_proxy()
+        request.meta['request'] = proxy_addr
+
+    def get_new_proxy(self):
+        return requests.get("http://127.0.0.1:5010/get/").content
+
+    def del_new_proxy(self, proxy):
+        requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))    
