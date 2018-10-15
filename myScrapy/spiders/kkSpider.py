@@ -13,11 +13,11 @@ class KKSpider(Spider):
         self.log('获取地区企业名录地址')
         for href in response.css('.cityList a::attr(href)').re(r'http:\/\/cn.b2bkk.com\/qiye\/.*'):
             self.log(href)
-            yield response.follow(href, self.parseCityCompanys)
+            yield response.follow(href, self.parseCityCompanys, dont_filter=True)
     
     def parseCityCompanys(self, response):
         for company in response.xpath('//div[@class="com_lists"]/ul/li/a/@href').extract():
-            yield response.follow(company, self.parseCompanyInfo)
+            yield response.follow(company, self.parseCompanyInfo, dont_filter=True)
     
     def parseCompanyInfo(self, response):
         def extract_with_css(query, reg=None):

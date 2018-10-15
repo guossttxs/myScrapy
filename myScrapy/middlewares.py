@@ -6,6 +6,9 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
+from scrapy.contrib.downloadermiddleware.retry import RetryMiddleware
+from scrapy.utils.response import response_status_message
+import random
 import requests
 
 class MyscrapySpiderMiddleware(object):
@@ -102,6 +105,21 @@ class MyscrapyDownloaderMiddleware(object):
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
 
+class HttpUserAgentMiddleware(object):
+    '''
+    设置user-agent属性
+    '''
+    def __init__(self, agent):
+        self.agent = agent
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        agents = crawler.settings.getlist('USER_AGENTS')
+        return cls(random.choice(agents))
+
+    def process_request(self, request, spider):
+        request.headers.setdefault('User-Agent', self.agent)
+
 
 class HttpProxyRequestMiddleware(object):
     '''
@@ -114,5 +132,29 @@ class HttpProxyRequestMiddleware(object):
     def get_new_proxy(self):
         return requests.get("http://127.0.0.1:5010/get/").content
 
+
+class HttpRetryMiddleware(RetryMiddleware):
+    '''
+    错误处理，重试设置
+    '''
     def del_new_proxy(self, proxy):
-        requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))    
+        requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
+
+    def process_response(self, request,  response, spider):
+        #对返回结果进行判断 异常时删除代理
+        if request.meta.get('dont_retry', False):
+            return response
+        if response.status in self.retry_http_codes:
+            reason = response_status_message(response.status)
+            spider.logger.warning(reason)
+            self.del_new_proxy(request.meta.get('proxy', False))
+            return self._retry(request, reason, spider) or response
+        return response
+
+    def process_exception(self, request, exception, spider):
+        #连接异常时处理
+        if isinstance(exception, self.EXCEPTIONS_TO_RETRY) \
+            and not request.meta.get('dont_retry', False):
+            spider.logger.warning('连接异常，正在重试')
+            self.del_new_proxy(request.meta.get('proxy', False))
+            return self._retry(request, exception, spider)
