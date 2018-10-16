@@ -6,7 +6,7 @@
 # https://doc.scrapy.org/en/latest/topics/spider-middleware.html
 
 from scrapy import signals
-from scrapy.contrib.downloadermiddleware.retry import RetryMiddleware
+from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
 import random
 import requests
@@ -109,16 +109,21 @@ class HttpUserAgentMiddleware(object):
     '''
     设置user-agent属性
     '''
-    def __init__(self, agent):
-        self.agent = agent
+    def __init__(self, agents):
+        self.agents = agents
 
     @classmethod
     def from_crawler(cls, crawler):
         agents = crawler.settings.getlist('USER_AGENTS')
-        return cls(random.choice(agents))
+        return cls(agents)
 
     def process_request(self, request, spider):
-        request.headers.setdefault('User-Agent', self.agent)
+        agent = random.choice(self.agents)
+        print('get user-agent:', agent)
+        request.headers.setdefault('User-Agent', agent)
+        # request.headers.setdefault('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8')
+        # request.headers.setdefault('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
+        # request.headers.setdefault('Cookie', 's_ViewType=10; _lxsdk_cuid=1667b9ce888c8-04920f983b4ff6-346a7809-fa000-1667b9ce88ac8; _lxsdk=1667b9ce888c8-04920f983b4ff6-346a7809-fa000-1667b9ce88ac8; _hc.v=6b7c6d04-6b14-cfea-8781-abb863759d1d.1539672173; _lxsdk_s=1667b9ce88c-73a-c16-ed%7C%7C22')
 
 
 class HttpProxyRequestMiddleware(object):
@@ -127,10 +132,14 @@ class HttpProxyRequestMiddleware(object):
     '''
     def process_request(self, request, spider):
         proxy_addr = self.get_new_proxy()
-        request.meta['request'] = proxy_addr
+        print('get proxy addr:', proxy_addr)
+        if isinstance(proxy_addr, bytes):
+            proxy_addr = proxy_addr.decode()
+        if proxy_addr:
+            request.meta['proxy'] = 'http://'+proxy_addr
 
     def get_new_proxy(self):
-        return requests.get("http://127.0.0.1:5010/get/").content
+        return requests.get("http://182.92.190.100:5010/get/").content
 
 
 class HttpRetryMiddleware(RetryMiddleware):
@@ -138,7 +147,10 @@ class HttpRetryMiddleware(RetryMiddleware):
     错误处理，重试设置
     '''
     def del_new_proxy(self, proxy):
-        requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
+        if proxy:
+            if proxy.startswith('http://'):
+                proxy = proxy.split('//')[1]
+        requests.get("http://182.92.190.100:5010/delete/?proxy={}".format(proxy))
 
     def process_response(self, request,  response, spider):
         #对返回结果进行判断 异常时删除代理
