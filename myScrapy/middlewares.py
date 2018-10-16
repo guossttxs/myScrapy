@@ -10,6 +10,7 @@ from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
 import random
 import requests
+from myScrapy.redis import rdb
 
 class MyscrapySpiderMiddleware(object):
     # Not all methods need to be defined. If a method is not defined,
@@ -133,13 +134,18 @@ class HttpProxyRequestMiddleware(object):
     def process_request(self, request, spider):
         proxy_addr = self.get_new_proxy()
         print('get proxy addr:', proxy_addr)
-        if isinstance(proxy_addr, bytes):
-            proxy_addr = proxy_addr.decode()
         if proxy_addr:
-            request.meta['proxy'] = 'http://'+proxy_addr
+            request.meta['proxy'] = proxy_addr
 
     def get_new_proxy(self):
-        return requests.get("http://182.92.190.100:5010/get/").content
+        proxy = rdb.get('proxy')
+        if not proxy:
+            proxy = requests.get("http://182.92.190.100:5010/get/").content
+            if proxy:
+                if isinstance(proxy, bytes):
+                    proxy = proxy.decode()
+                return 'http://' + proxy
+        return proxy.decode()
 
 
 class HttpRetryMiddleware(RetryMiddleware):
@@ -150,17 +156,21 @@ class HttpRetryMiddleware(RetryMiddleware):
         if proxy:
             if proxy.startswith('http://'):
                 proxy = proxy.split('//')[1]
-        requests.get("http://182.92.190.100:5010/delete/?proxy={}".format(proxy))
+            requests.get("http://182.92.190.100:5010/delete/?proxy={}".format(proxy))
 
     def process_response(self, request,  response, spider):
         #对返回结果进行判断 异常时删除代理
         if request.meta.get('dont_retry', False):
             return response
+        proxy = request.meta.get('proxy', False)
         if response.status in self.retry_http_codes:
             reason = response_status_message(response.status)
             spider.logger.warning(reason)
-            self.del_new_proxy(request.meta.get('proxy', False))
+            self.del_new_proxy(proxy)
             return self._retry(request, reason, spider) or response
+        if proxy:
+            rdb.set('proxy', proxy)
+            rdb.expire('proxy', 3000)
         return response
 
     def process_exception(self, request, exception, spider):

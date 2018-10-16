@@ -41,5 +41,5 @@ class MongoPipeline(object):
         if isinstance(item, CompanyInfoItem):
             if not item.get('tel') and not item.get('mobile'):
                 return item
-            self.db.companys.update({'name': item.get('name')}, item, True)
+            self.db.companys.update({'name': item.get('name'), 'tel': item.get('tel')}, item, True)
         return item
