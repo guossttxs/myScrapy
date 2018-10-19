@@ -10,6 +10,7 @@ from scrapy.downloadermiddlewares.retry import RetryMiddleware
 from scrapy.utils.response import response_status_message
 import random
 import requests
+import time
 from myScrapy.redis import rdb
 
 class MyscrapySpiderMiddleware(object):
@@ -124,7 +125,7 @@ class HttpUserAgentMiddleware(object):
         request.headers.setdefault('User-Agent', agent)
         # request.headers.setdefault('Accept', 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8')
         # request.headers.setdefault('Accept-Language', 'zh-CN,zh;q=0.9,en;q=0.8')
-        # request.headers.setdefault('Cookie', 's_ViewType=10; _lxsdk_cuid=1667b9ce888c8-04920f983b4ff6-346a7809-fa000-1667b9ce88ac8; _lxsdk=1667b9ce888c8-04920f983b4ff6-346a7809-fa000-1667b9ce88ac8; _hc.v=6b7c6d04-6b14-cfea-8781-abb863759d1d.1539672173; _lxsdk_s=1667b9ce88c-73a-c16-ed%7C%7C22')
+        # request.headers.setdefault('Cookie', 'Hm_lvt_016adfe6660afe2eb7bc86cd6ebe48be=1539833215; Hm_lpvt_016adfe6660afe2eb7bc86cd6ebe48be=1539937596')
 
 
 class HttpProxyRequestMiddleware(object):
@@ -152,6 +153,14 @@ class HttpRetryMiddleware(RetryMiddleware):
     '''
     错误处理，重试设置
     '''
+    def __init__(self, crawler):
+        super(HttpRetryMiddleware, self).__init__(crawler.settings)
+        self.crawler = crawler
+
+    @classmethod
+    def from_crawler(cls, crawler):
+        return cls(crawler)
+
     def del_new_proxy(self, proxy):
         if proxy:
             if proxy.startswith('http://'):
@@ -164,8 +173,13 @@ class HttpRetryMiddleware(RetryMiddleware):
             return response
         proxy = request.meta.get('proxy', False)
         if response.status in self.retry_http_codes:
+            if response.status == 429:
+                self.crawler.engine.pause()
+                time.sleep(60)
+                self.crawler.engine.unpause()
             reason = response_status_message(response.status)
             spider.logger.warning(reason)
+            rdb.delete('proxy')
             self.del_new_proxy(proxy)
             return self._retry(request, reason, spider) or response
         if proxy:

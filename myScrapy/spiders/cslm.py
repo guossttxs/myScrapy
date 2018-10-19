@@ -1,7 +1,6 @@
 from scrapy import Spider, Request
 from myScrapy.items import CompanyInfoItem
 from myScrapy.redis import rdb
-from myScrapy.items import CompanyInfoItem
 
 '''
 城市联盟
