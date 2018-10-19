@@ -19,9 +19,9 @@ class JQSpider(Spider):
     def start_requests(self):
         while self.curPage <= self.maxPage:
             if self.curPage == 0:
-                url = 'www.product.jqw.com/plist.html'
+                url = 'http://www.product.jqw.com/plist.html'
             else:
-                url = 'www.product.jqw.com/{}/plist.html'.format(self.curPage)
+                url = 'http://www.product.jqw.com/{}/plist.html'.format(self.curPage)
             yield Request(url, self.parse, dont_filter=True)
     
     def parse(self, response):
