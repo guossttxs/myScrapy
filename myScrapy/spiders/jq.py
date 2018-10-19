@@ -44,7 +44,7 @@ class JQSpider(Spider):
         contact = query.xpath('./p[contains(text(), "联系")]/../p[2]/span/text()').extract_first()
         tel = query.xpath('./p[contains(text(), "电话")]/../p[2]/span/text()').extract_first()
         mobile = query.xpath('./p[contains(text(), "手机")]/../p[2]/span/text()').extract_first()
-        address = query.xpath('./p[contains(text(), "企业")]/../p[2]/span/text()').extract_first()
+        address = query.xpath('./p[contains(text(), "地址")]/../p[2]/span/text()').extract_first()
         
         item['name'] = company
         item['contact'] = contact
