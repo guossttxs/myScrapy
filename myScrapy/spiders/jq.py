@@ -31,11 +31,22 @@ class JQSpider(Spider):
         self.maxPage = int(maxPage) if maxPage else self.maxPage
         for l in response.xpath('//div[@class="company"]/ul[@id="dataList"]/li'):
             href = l.xpath('./div/a/@href').extract_first()
-            yield Request(href, self.parseCompany, dont_filter=True)
-            # company = data.xpath('./div/p[contains(text(), "公司")]/../p[2]/a/text()').extract_first()
-            # url = data.xpath('./div/p[contains(text(), "公司")]/../p[2]/a/@href').extract_first()
-            # tel = data.xpath('./div/p[contains(text(), "电话")]/../p[2]/text()').extract_first()
-            # address = data.xpath('./div/p[contains(text(), "地址")]/../p[2]/text()').extract_first()
+            #yield Request(href, self.parseCompany, dont_filter=True)
+            data = l.xpath('./div/div')
+            company = data.xpath('./div/p[contains(text(), "公司")]/../p[2]/a/text()').extract_first()
+            tel = data.xpath('./div/p[contains(text(), "电话")]/../p[2]/text()').extract_first()
+            address = data.xpath('./div/p[contains(text(), "地址")]/../p[2]/text()').extract_first()
+            item = CompanyInfoItem()
+            tel_sp = tel.split('|')
+            for tel in tel_sp:
+                if tel:
+                    item['name'] = company
+                    item['contact'] = ''
+                    item['tel'] = tel
+                    item['address'] = address
+                    item['url'] = href
+                    item['meta'] = 'jqw'
+                    yield item
         
     def parseCompany(self, response):
         item = CompanyInfoItem()
