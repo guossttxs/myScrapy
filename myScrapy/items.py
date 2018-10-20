@@ -21,4 +21,5 @@ class CompanyInfoItem(scrapy.Item):
     address = scrapy.Field()
     contact = scrapy.Field()
     url = scrapy.Field()
+    meta = scrapy.Field()
 
