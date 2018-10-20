@@ -37,13 +37,16 @@ class JQSpider(Spider):
             tel = data.xpath('./div/p[contains(text(), "电话")]/../p[2]/text()').extract_first()
             address = data.xpath('./div/p[contains(text(), "地址")]/../p[2]/text()').extract_first()
             item = CompanyInfoItem()
-            item['name'] = company
-            item['contact'] = ''
-            item['tel'] = tel
-            item['address'] = address
-            item['url'] = href
-            item['meta'] = 'jqw'
-            yield item
+            tel_sp = tel.split('|')
+            for tel in tel_sp:
+                if tel:
+                    item['name'] = company
+                    item['contact'] = ''
+                    item['tel'] = tel
+                    item['address'] = address
+                    item['url'] = href
+                    item['meta'] = 'jqw'
+                    yield item
         
     def parseCompany(self, response):
         item = CompanyInfoItem()
