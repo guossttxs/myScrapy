@@ -13,19 +13,19 @@ class JQSpider(Spider):
         curPage = int(rdb.get('jqw_cur_page').decode()) if rdb.get('jqw_cur_page') else 0
         maxPage = int(rdb.get('jqw_pages').decode()) if rdb.get('jqw_pages') else 10000
         self.curPage = curPage
-        self.maxPage = maxPage
+        self.maxPage = 500
+        self.cityCode = [1, 129, 350, 371, 453, 573, 686, 840, 973, 1095, 1138, 1170, 1223, 1245, 1409, 1551, 1726, 1866, 1887, 1991, 2104, 2242, 2346, 2393, 2588, 2782, 2941, 3091, 3169, 3302, 3431, 3554, 3973, 4002]
         super(JQSpider, self).__init__(*args, **kwargs)
     
     def start_requests(self):
-        while self.curPage <= self.maxPage:
-            if self.curPage == 0:
-                url = 'http://www.product.jqw.com/plist.html'
-            else:
-                url = 'http://www.product.jqw.com/{}/plist.html'.format(self.curPage)
-            yield Request(url, self.parse, dont_filter=True)
+        for code in self.cityCode:
+            self.curPage = 0
+            while self.curPage <= self.maxPage:
+                self.curPage += 1
+                url = 'http://www.product.jqw.com/a{}/{}/plist.html'.format(code, self.curPage)
+                yield Request(url, self.parse, dont_filter=True)
     
     def parse(self, response):
-        self.curPage += 1
         rdb.set('jqw_cur_page', self.curPage)
         maxPage = response.xpath('//div[@class="searchPage"]/span/strong/text()').extract_first()
         self.maxPage = int(maxPage) if maxPage else self.maxPage
@@ -67,5 +67,5 @@ class JQSpider(Spider):
 
         tel2 = query.xpath('./p[contains(text(), "手机")]/../following-sibling::li[1]/p[2]/span/text()').extract_first()
         if tel2:
-            item['tel'] = tel2
+            item['mobile'] = tel2
             yield item
