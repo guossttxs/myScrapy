@@ -1,6 +1,7 @@
 from scrapy import Spider, Request
 from myScrapy.items import CompanyInfoItem
 from myScrapy.redis import rdb
+from myScrapy.utils.mongo import MongoObj
 
 '''
 金泉网
@@ -18,12 +19,18 @@ class JQSpider(Spider):
         super(JQSpider, self).__init__(*args, **kwargs)
     
     def start_requests(self):
-        for code in self.cityCode:
-            self.curPage = 0
-            while self.curPage <= self.maxPage:
-                self.curPage += 1
-                url = 'http://www.product.jqw.com/a{}/{}/plist.html'.format(code, self.curPage)
-                yield Request(url, self.parse, dont_filter=True)
+        # for code in self.cityCode:
+        #     self.curPage = 0
+        #     while self.curPage <= self.maxPage:
+        #         self.curPage += 1
+        #         url = 'http://www.product.jqw.com/a{}/{}/plist.html'.format(code, self.curPage)
+        #         yield Request(url, self.parse, dont_filter=True)
+        mongo = MongoObj()
+        db = mongo.get_db()
+        datas = db.find({'meta': 'jqw', 'contact': ''}, {'url': 1})
+        urls = [data.get('url') for data in datas]
+        for url in urls:
+            yield Request(url, self.parseCompany, dont_filter=True)
     
     def parse(self, response):
         rdb.set('jqw_cur_page', self.curPage)
@@ -53,13 +60,12 @@ class JQSpider(Spider):
         query = response.xpath('//div[@alt="jqwlx"]/ul/li')
         company = query.xpath('./p[contains(text(), "企业")]/../p[2]/span/a/text()').extract_first()
         contact = query.xpath('./p[contains(text(), "联系")]/../p[2]/span/text()').extract_first()
-        tel = query.xpath('./p[contains(text(), "电话")]/../p[2]/span/text()').extract_first()
-        mobile = query.xpath('./p[contains(text(), "手机")]/../p[2]/span/text()').extract_first()
+        tel = query.xpath('./p[contains(text(), "手机")]/../p[2]/span/text()').extract_first()
+        #mobile = query.xpath('./p[contains(text(), "手机")]/../p[2]/span/text()').extract_first()
         address = query.xpath('./p[contains(text(), "地址")]/../p[2]/span/text()').extract_first()
         
         item['name'] = company
         item['contact'] = contact
-        item['mobile'] = mobile
         item['tel'] = tel
         item['address'] = address
         item['url'] = response.url
@@ -67,5 +73,5 @@ class JQSpider(Spider):
 
         tel2 = query.xpath('./p[contains(text(), "手机")]/../following-sibling::li[1]/p[2]/span/text()').extract_first()
         if tel2:
-            item['mobile'] = tel2
+            item['tel'] = tel2
             yield item
