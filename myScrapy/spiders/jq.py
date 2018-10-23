@@ -69,6 +69,7 @@ class JQSpider(Spider):
         item['tel'] = tel
         item['address'] = address
         item['url'] = response.url
+        item['meta'] = 'jqw'
         yield item
 
         tel2 = query.xpath('./p[contains(text(), "手机")]/../following-sibling::li[1]/p[2]/span/text()').extract_first()
