@@ -27,7 +27,7 @@ class JQSpider(Spider):
         #         yield Request(url, self.parse, dont_filter=True)
         mongo = MongoObj()
         db = mongo.get_db()
-        datas = db.find({'meta': 'jqw', 'contact': ''}, {'url': 1})
+        datas = db.companys.find({'meta': 'jqw', 'contact': ''}, {'url': 1})
         urls = [data.get('url') for data in datas]
         for url in urls:
             yield Request(url, self.parseCompany, dont_filter=True)
