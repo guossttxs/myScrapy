@@ -2,6 +2,7 @@ from scrapy import Spider, Request
 from myScrapy.items import CompanyInfoItem
 from myScrapy.redis import rdb
 from myScrapy.utils.mongo import MongoObj
+from myScrapy.utils.helpers import format_str
 
 '''
 金泉网
@@ -66,12 +67,14 @@ class JQSpider(Spider):
         
         item['name'] = company
         item['contact'] = contact
-        item['tel'] = tel
+        item['tel'] = format_str(tel)
         item['address'] = address
         item['url'] = response.url
+        item['meta'] = 'jqw'
         yield item
 
         tel2 = query.xpath('./p[contains(text(), "手机")]/../following-sibling::li[1]/p[2]/span/text()').extract_first()
+        tel2 = format_str(tel2)
         if tel2:
             item['tel'] = tel2
             yield item
