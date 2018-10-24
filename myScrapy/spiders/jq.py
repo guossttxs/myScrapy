@@ -59,6 +59,8 @@ class JQSpider(Spider):
     def parseCompany(self, response):
         item = CompanyInfoItem()
         query = response.xpath('//div[@alt="jqwlx"]/ul/li')
+        if not query:
+            query = response.xpath('//div[@class="main_left"]/div[2]/ul/li')
         company = query.xpath('./p[contains(text(), "企业")]/../p[2]/span/a/text()').extract_first()
         contact = query.xpath('./p[contains(text(), "联系")]/../p[2]/span/text()').extract_first()
         tel = query.xpath('./p[contains(text(), "手机")]/../p[2]/span/text()').extract_first()
