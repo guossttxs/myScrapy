@@ -99,9 +99,9 @@ ITEM_PIPELINES = {
 
 #MONGODB
 MONGODB_URI = 'mongodb://127.0.0.1:15693'
-MONGODB_DBNAME = ''
-MONGODB_USER = ''
-MONGODB_PWD = ''
+MONGODB_DBNAME = 'crawl'
+MONGODB_USER = 'guoss'
+MONGODB_PWD = 'nuan20?15xin'
 
 USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
