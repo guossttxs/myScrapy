@@ -52,17 +52,25 @@ class YhbySpider(Spider):
                 address = cardtab.xpath('./tr/td[contains(text(), "公司地址")]/../td[2]/text()').extract_first()
             contact = cardtab.xpath('./tr/td[contains(text(), "联系人")]/../td[2]/text()').extract_first()
             mobile = cardtab.xpath('./tr/td[contains(text(), "手机号码")]/../td[4]/text()').extract_first()
-            mobile = re.findall("\d+", mobile)[0]
+            if mobile:
+                mobile = re.findall("\d+", mobile)[0]
             tel = cardtab.xpath('./tr/td[contains(text(), "电话号码")]/../td[4]/text()').extract_first()
-            tel = re.findall("\d+", tel)[0]
+            if tel:
+                tel = re.findall("\d+", tel)[0]
         else:
             query = response.xpath('//div[@class="lianxi_wrap"]')
             name = query.xpath('./div[2]/p/font/text()').extract_first()
             address = query.xpath('./div[2]/p[2]/i/text()').extract_first()
             contact = query.xpath('./div[3]/ul/li/font[contains(text(), "联系人")]/../text()').extract()
-            contact = format_str(contact[1])
+            try:
+                contact = format_str(contact[1])
+            except:
+                contact = ''
             mobile = query.xpath('./div[3]/ul/li/font[contains(text(), "手机")]/../text()').extract()
-            mobile = format_str(mobile[1])
+            try:
+                mobile = format_str(mobile[1])
+            except:
+                mobile = ''
             tel = ''
         item['name'] = name
         item['address'] = address
