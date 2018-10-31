@@ -19,7 +19,7 @@ NEWSPIDER_MODULE = 'myScrapy.spiders'
 #USER_AGENT = 'myScrapy (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -98,10 +98,10 @@ ITEM_PIPELINES = {
 #HTTPCACHE_STORAGE = 'scrapy.extensions.httpcache.FilesystemCacheStorage'
 
 #MONGODB
-MONGODB_URI = 'mongodb://127.0.0.1:15693'
-MONGODB_DBNAME = ''
-MONGODB_USER = ''
-MONGODB_PWD = ''
+MONGODB_URI = 'mongodb://182.92.190.100:15693'
+MONGODB_DBNAME = 'crawl'
+MONGODB_USER = 'guoss'
+MONGODB_PWD = 'nuan20?15xin'
 
 USER_AGENTS = [
     'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36',
