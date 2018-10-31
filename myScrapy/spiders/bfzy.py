@@ -20,20 +20,20 @@ class BfzySpider(Spider):
         super(BfzySpider, self).__init__(*args, **kwargs)
  
     def start_requests(self):
-        for city in self.citys[:1]:
+        for city in self.citys:
             url = '{}/{}qiye/'.format(self.domain, city)
             yield Request(url, self.parseCity, dont_filter=True)
 
     def parseCity(self, response):
-        for dd in response.css('div.mach_list dl dd')[:1]:
+        for dd in response.css('div.mach_list dl dd'):
             if dd:
-                for href in dd.xpath('./a')[:1]:
+                for href in dd.xpath('./a'):
                     url = href.xpath('./@href').extract_first()
                     url = self.domain + url
                     yield Request(url, self.parseCompanys, dont_filter=True)
     
     def parseCompanys(self, response):
-        for company in response.css('ul.list li div.biaoti a')[:2]:
+        for company in response.css('ul.list li div.biaoti a'):
             href = company.xpath('./@href').extract_first()
             if href.startswith('//'):
                 href = 'https:' + href
