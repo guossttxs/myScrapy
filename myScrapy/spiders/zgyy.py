@@ -43,7 +43,7 @@ class ZgyySpider(Spider):
         if cur_page < maxPage:
             urls[-1] = '{}.html'.format(cur_page+1)
             url = '/'.join(urls)
-            #yield Request(url, self.parseCompanys, dont_filter=True)
+            yield Request(url, self.parseCompanys, dont_filter=True)
         
     def format_query(self, query):
         query = query.split('：')
