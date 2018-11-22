@@ -15,8 +15,12 @@ class SpswSpider(Spider):
         self.domain = 'http://www.21food.cn'
 
     def start_requests(self):
-        url = 'http://www.21food.cn/company/'
-        yield Request(url, self.parse)
+        srcurl = 'http://www.21food.cn/company/'
+        # yield Request(url, self.parse)
+        citys = ['search_province-%C1%C9%C4%FE.html', 'search_province-%BC%AA%C1%D6.html', 'search_province-%BA%DA%C1%FA%BD%AD.html']
+        for i in citys:
+            url = srcurl + i
+            yield Request(url, self.parseCityList, dont_filter=True)
 
     def parse(self, response):
         for li in response.css('div.ind_k_top_r div.ind_k_r_mpcc ul li'):
@@ -102,20 +106,22 @@ class SpswSpider(Spider):
         if content:
             for ll in content.css('div.y_l_cont_ll ul li'):
                 emt = ll.xpath('./em/text()').extract_first()
+                spant = ll.xpath('./span/text()').extract_first()
                 if emt:
                     if emt.find('名称') == 0:
-                        name = emt
+                        name = spant
                     elif emt.find('电话') == 0:
-                        tel = emt
+                        tel = spant
                     elif emt.find('手机') == 0:
-                        mobile = emt
+                        mobile = spant
             for rr in content.css('div.y_r_cont_rr ul li'):
                 emt = rr.xpath('./em/text()').extract_first()
+                spant = rr.xpath('./span/text()').extract_first()
                 if emt:
                     if emt.find('业务主管') == 0:
-                        contact = emt
+                        contact = spant
                     elif emt.find('地址') == 0:
-                        address = emt
+                        address = spant
         item = CompanyInfoItem()
         item['name'] = name
         item['tel'] = tel
